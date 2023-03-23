@@ -26,8 +26,8 @@ const Overlay = styled.div`
   background-color: rgba(51, 51, 51, 0.85);
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  align-items: left;
+  justify-content: left;
   padding: 1rem;
   box-sizing: border-box;
   z-index: 1;
@@ -61,8 +61,8 @@ const MovieCard = ({ movie }) => {
         <Overlay onClick={hideOverlay}>
           <h2>{title}</h2>
           <Stars vote_average={vote_average} />
-          <OverlayText>Ratings: {vote_count}</OverlayText>
-          <OverlayText>Release Date: {release_date}</OverlayText>
+          <OverlayText><b>Ratings:</b> {vote_count}</OverlayText>
+          <OverlayText><b>Release Date:</b> {release_date}</OverlayText>
           <OverlayText>{overview}</OverlayText>
         </Overlay>
       )}
