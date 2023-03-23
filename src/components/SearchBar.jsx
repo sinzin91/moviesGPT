@@ -5,6 +5,12 @@ const SearchBarContainer = styled.div`
   display: flex;
   justify-content: center;
   padding: 1rem;
+  width: 100%;
+  box-sizing: border-box;
+
+  @media (max-width: 480px) {
+    flex-direction: column;
+  }
 `;
 
 const SearchInput = styled.input`
@@ -18,6 +24,10 @@ const SearchInput = styled.input`
   &:focus {
     outline: none;
     background-color: #444;
+  }
+
+  @media (max-width: 480px) {
+    width: 100%;
   }
 `;
 
@@ -33,18 +43,22 @@ const SearchButton = styled.button`
   &:hover {
     background-color: #0096c7;
   }
+
+  @media (max-width: 480px) {
+    margin-left: 0;
+    margin-top: 1rem;
+  }
 `;
 
 const SearchBar = ({ setSearchTerm, onSearchButtonClick }) => {
   const handleInputChange = (e) => {
     setSearchTerm(e.target.value);
   };
-
   return (
     <SearchBarContainer>
       <SearchInput
         type="text"
-        placeholder="Search movies..."
+        placeholder="Search for movies by plot..."
         onChange={handleInputChange}
       />
       <SearchButton onClick={onSearchButtonClick}>Search</SearchButton>
