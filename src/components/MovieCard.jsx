@@ -1,5 +1,6 @@
 import React from "react";
 import styled from "styled-components";
+import Stars from "./Stars";
 
 const Card = styled.div`
   width: 100%;
@@ -20,12 +21,14 @@ const MovieTitle = styled.p`
 `;
 
 const MovieCard = ({ movie }) => {
-  const posterUrl = `https://image.tmdb.org/t/p/w500${movie.poster_path}`;
+  const { title, poster_path, vote_average } = movie;
+  const posterUrl = `https://image.tmdb.org/t/p/w500${poster_path}`;
 
   return (
     <Card>
-      <MoviePoster src={posterUrl} alt={movie.title} />
-      <MovieTitle>{movie.title}</MovieTitle>
+      <MoviePoster src={posterUrl} alt={title} />
+      <MovieTitle>{title}</MovieTitle>
+      <Stars vote_average={vote_average} />
     </Card>
   );
 };
