@@ -1,34 +1,71 @@
-import React from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 import Stars from "./Stars";
 
 const Card = styled.div`
+  position: relative;
+  cursor: pointer;
+`;
+
+const Image = styled.img`
   width: 100%;
+  height: auto;
+`;
+
+const Title = styled.h3`
+  font-size: 1.1rem;
+  margin-top: 0.5rem;
+`;
+
+const Overlay = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(51, 51, 51, 0.85);
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  box-sizing: border-box;
+  z-index: 1;
 `;
 
-const MoviePoster = styled.img`
-  width: 100%;
-  border-radius: 4px;
-`;
-
-const MovieTitle = styled.p`
-  margin-top: 0.5rem;
-  font-size: 1.1rem;
-  color: #fff;
+const OverlayText = styled.p`
+  margin: 0.5rem 0;
 `;
 
 const MovieCard = ({ movie }) => {
-  const { title, poster_path, vote_average } = movie;
-  const posterUrl = `https://image.tmdb.org/t/p/w500${poster_path}`;
+  const { title, poster_path, vote_average, release_date, overview, vote_count } = movie;
+  const imageUrl = `https://image.tmdb.org/t/p/w300${poster_path}`;
+
+  const [overlayVisible, setOverlayVisible] = useState(false);
+
+  const toggleOverlay = () => {
+    setOverlayVisible(!overlayVisible);
+  };
+
+  const hideOverlay = (e) => {
+    e.stopPropagation();
+    setOverlayVisible(false);
+  };
 
   return (
-    <Card>
-      <MoviePoster src={posterUrl} alt={title} />
-      <MovieTitle>{title}</MovieTitle>
+    <Card onClick={toggleOverlay}>
+      <Image src={imageUrl} alt={title} />
+      <Title>{title}</Title>
       <Stars vote_average={vote_average} />
+      {overlayVisible && (
+        <Overlay onClick={hideOverlay}>
+          <h2>{title}</h2>
+          <Stars vote_average={vote_average} />
+          <OverlayText>Ratings: {vote_count}</OverlayText>
+          <OverlayText>Release Date: {release_date}</OverlayText>
+          <OverlayText>{overview}</OverlayText>
+        </Overlay>
+      )}
     </Card>
   );
 };

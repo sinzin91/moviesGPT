@@ -4,10 +4,11 @@ import MovieCard from "./MovieCard";
 
 const Grid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(250px, 2fr));
   grid-gap: 1rem;
   width: 100%;
   margin-top: 2rem;
+  max-width: 1200px;
   box-sizing: border-box;
 
   @media (max-width: 480px) {

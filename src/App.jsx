@@ -55,9 +55,11 @@ const App = () => {
                 Example:
                 prompt: "movies with brando"
                 
-                ["The Godfather", "The Godfather: Part II", "Apocalypse Now", "The Wild One", "The Freshman"]
+                response: ["The Godfather", "The Godfather: Part II", "Apocalypse Now", "The Wild One", "The Freshman", "The Missouri Breaks", "The Formula", "The Appaloosa"]
   
-                prompt: ${searchTerm}`,
+                prompt: ${searchTerm}
+                response:
+                `,
       };
       const requestOptions = {
         method: "POST",
