@@ -54,12 +54,20 @@ const SearchBar = ({ setSearchTerm, onSearchButtonClick }) => {
   const handleInputChange = (e) => {
     setSearchTerm(e.target.value);
   };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      onSearchButtonClick();
+    }
+  };
+
   return (
     <SearchBarContainer>
       <SearchInput
         type="text"
         placeholder="Search for movies by plot..."
         onChange={handleInputChange}
+        onKeyDown={handleKeyDown}
       />
       <SearchButton onClick={onSearchButtonClick}>Search</SearchButton>
     </SearchBarContainer>

@@ -26,6 +26,7 @@ const Subheading = styled.h2`
   color: #fff;
   margin: 0.5rem 0 0;
   font-weight: normal;
+  text-align: center;
 
   @media (max-width: 480px) {
     font-size: 1rem;
