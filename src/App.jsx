@@ -49,14 +49,15 @@ const App = () => {
     try {
       const params = {
         ...DEFAULT_PARAMS,
-        prompt: `Return an array of movie titles that best match this search term, ordered from most to least relevant.
+        prompt: `Return an array of movie titles that best match this search term, 
+                ordered from most to least relevant.
   
-  Example:
-  prompt: "movies with brando"
+                Example:
+                prompt: "movies with brando"
+                
+                ["The Godfather", "The Godfather: Part II", "Apocalypse Now", "The Wild One", "The Freshman"]
   
-  ["The Godfather", "The Godfather: Part II", "Apocalypse Now", "The Wild One", "The Freshman"]
-  
-  prompt: ${searchTerm}`,
+                prompt: ${searchTerm}`,
       };
       const requestOptions = {
         method: "POST",
