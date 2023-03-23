@@ -1,0 +1,7 @@
+Return an array of movie titles that best match this search term, ordered from most to least relevant.
+Example:
+prompt: "movies with brando"
+
+["The Godfather", "The Godfather: Part II", "Apocalypse Now", "The Wild One", "The Freshman"]
+
+prompt: '{prompt}'
