@@ -37,7 +37,7 @@ const Header = () => {
   return (
     <HeaderContainer>
       <Title>MoviesGPT 🍿</Title>
-      <Subheading>Search for movies by what happens in the plot.</Subheading>
+      <Subheading>Search for movies by what happens in the plot, ⚡ by GPT. </Subheading>
     </HeaderContainer>
   );
 };

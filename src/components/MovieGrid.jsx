@@ -5,9 +5,9 @@ import MovieCard from "./MovieCard";
 const Grid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 2fr));
-  grid-gap: 1rem;
+  grid-gap: 2rem;
   width: 100%;
-  margin-top: 2rem;
+  margin-top: 4rem;
   max-width: 1200px;
   box-sizing: border-box;
 

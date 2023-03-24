@@ -56,7 +56,7 @@ const SearchBar = ({ setSearchTerm, onSearchButtonClick }) => {
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       onSearchButtonClick();
     }
   };

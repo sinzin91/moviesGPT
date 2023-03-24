@@ -12,7 +12,7 @@ const OPENAI_API_KEY = import.meta.env.VITE_APP_OPENAI_API_KEY
 
 const DEFAULT_PARAMS = {
   model: "text-davinci-003",
-  temperature: 0.3,
+  temperature: 0.1,
   max_tokens: 256,
   top_p: 1,
   frequency_penalty: 0,

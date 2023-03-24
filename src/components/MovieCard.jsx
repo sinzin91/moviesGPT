@@ -15,6 +15,7 @@ const Image = styled.img`
 const Title = styled.h3`
   font-size: 1.1rem;
   margin-top: 0.5rem;
+  text-align: center;
 `;
 
 const Overlay = styled.div`
@@ -38,7 +39,14 @@ const OverlayText = styled.p`
 `;
 
 const MovieCard = ({ movie }) => {
-  const { title, poster_path, vote_average, release_date, overview, vote_count } = movie;
+  const {
+    title,
+    poster_path,
+    vote_average,
+    release_date,
+    overview,
+    vote_count,
+  } = movie;
   const imageUrl = `https://image.tmdb.org/t/p/w300${poster_path}`;
 
   const [overlayVisible, setOverlayVisible] = useState(false);
@@ -56,13 +64,17 @@ const MovieCard = ({ movie }) => {
     <Card onClick={toggleOverlay}>
       <Image src={imageUrl} alt={title} />
       <Title>{title}</Title>
-      <Stars vote_average={vote_average} />
+      <Stars vote_average={vote_average} alignCenter />
       {overlayVisible && (
         <Overlay onClick={hideOverlay}>
           <h2>{title}</h2>
           <Stars vote_average={vote_average} />
-          <OverlayText><b>Ratings:</b> {vote_count}</OverlayText>
-          <OverlayText><b>Release Date:</b> {release_date}</OverlayText>
+          <OverlayText>
+            <b>Ratings:</b> {vote_count}
+          </OverlayText>
+          <OverlayText>
+            <b>Release Date:</b> {release_date}
+          </OverlayText>
           <OverlayText>{overview}</OverlayText>
         </Overlay>
       )}
