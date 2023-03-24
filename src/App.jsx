@@ -7,11 +7,11 @@ import Header from "./components/Header";
 import Loading from "./components/Loading";
 
 // Set OpenAI API key
-const TMBD_API_KEY = import.meta.env.VITE_APP_TMBD_API_KEY
-const OPENAI_API_KEY = import.meta.env.VITE_APP_OPENAI_API_KEY
+const TMBD_API_KEY = import.meta.env.VITE_APP_TMBD_API_KEY;
+const OPENAI_API_KEY = import.meta.env.VITE_APP_OPENAI_API_KEY;
 
 const DEFAULT_PARAMS = {
-  model: "text-davinci-003",
+  model: "gpt-3.5-turbo",
   temperature: 0.1,
   max_tokens: 256,
   top_p: 1,
@@ -25,16 +25,16 @@ const App = () => {
   const [loading, setLoading] = useState(false);
 
   const fetchMoviesFromTMDB = async (movieTitles) => {
-    console.log("fetching movies from TMDB...")
+    console.log("fetching movies from TMDB...");
     const fetchedMovies = [];
 
     for (const title of movieTitles) {
-      console.log(`fetching movie: ${title}`)
+      console.log(`fetching movie: ${title}`);
       try {
         const response = await axios.get(
           `https://api.themoviedb.org/3/search/movie?api_key=${TMBD_API_KEY}&query=${title}`
         );
-        console.log(response)
+        console.log(response);
 
         if (response.data.results.length > 0) {
           fetchedMovies.push(response.data.results[0]);
@@ -49,9 +49,7 @@ const App = () => {
 
   const fetchMovieTitlesFromOpenAI = async (searchTerm) => {
     try {
-      const params = {
-        ...DEFAULT_PARAMS,
-        prompt: `Return an array of movie titles that best match this search term, 
+      const prompt = `Return an array of movie titles that best match this search term, 
                 ordered from most to least relevant. Generate up to 16 titles.
   
                 Example:
@@ -61,7 +59,11 @@ const App = () => {
   
                 prompt: ${searchTerm}
                 response:
-                `,
+                `;
+
+      const params = {
+        ...DEFAULT_PARAMS,
+        messages: [{ role: "user", content: prompt }],
       };
       const requestOptions = {
         method: "POST",
@@ -73,7 +75,7 @@ const App = () => {
       };
 
       const response = await fetch(
-        "https://api.openai.com/v1/completions",
+        "https://api.openai.com/v1/chat/completions",
         requestOptions
       );
 
@@ -81,13 +83,12 @@ const App = () => {
 
       console.log(data);
 
-      const movieTitles = data.choices[0].text
+      const movieTitles = data.choices[0].message.content
         .trim()
         .split("\n")
         .filter((title) => title);
 
       console.log(movieTitles);
-
 
       return JSON.parse(movieTitles);
     } catch (error) {
