@@ -4,6 +4,7 @@ import SearchBar from "./components/SearchBar";
 import MovieGrid from "./components/MovieGrid";
 import GlobalStyle from "./styles/GlobalStyle";
 import Header from "./components/Header";
+import Loading from "./components/Loading";
 
 // Set OpenAI API key
 const TMBD_API_KEY = import.meta.env.VITE_APP_TMBD_API_KEY
@@ -21,6 +22,7 @@ const DEFAULT_PARAMS = {
 const App = () => {
   const [movies, setMovies] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const fetchMoviesFromTMDB = async (movieTitles) => {
     console.log("fetching movies from TMDB...")
@@ -42,7 +44,7 @@ const App = () => {
       }
     }
 
-    setMovies(fetchedMovies.slice(0, 10));
+    setMovies(fetchedMovies.slice(0, 16));
   };
 
   const fetchMovieTitlesFromOpenAI = async (searchTerm) => {
@@ -50,12 +52,12 @@ const App = () => {
       const params = {
         ...DEFAULT_PARAMS,
         prompt: `Return an array of movie titles that best match this search term, 
-                ordered from most to least relevant.
+                ordered from most to least relevant. Generate up to 16 titles.
   
                 Example:
                 prompt: "movies with brando"
                 
-                response: ["The Godfather", "The Godfather: Part II", "Apocalypse Now", "The Wild One", "The Freshman", "The Missouri Breaks", "The Formula", "The Appaloosa"]
+                response: ["The Godfather", "The Godfather: Part II", "Apocalypse Now", "The Wild One"]
   
                 prompt: ${searchTerm}
                 response:
@@ -96,8 +98,10 @@ const App = () => {
 
   const handleSearchButtonClick = async () => {
     if (searchTerm) {
+      setLoading(true);
       const movieTitles = await fetchMovieTitlesFromOpenAI(searchTerm);
-      fetchMoviesFromTMDB(movieTitles);
+      await fetchMoviesFromTMDB(movieTitles);
+      setLoading(false);
     }
   };
 
@@ -109,6 +113,7 @@ const App = () => {
         setSearchTerm={setSearchTerm}
         onSearchButtonClick={handleSearchButtonClick}
       />
+      {loading && <Loading />}
       <MovieGrid movies={movies} />
     </>
   );
