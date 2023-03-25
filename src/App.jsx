@@ -5,6 +5,7 @@ import MovieGrid from "./components/MovieGrid";
 import GlobalStyle from "./styles/GlobalStyle";
 import Header from "./components/Header";
 import Loading from "./components/Loading";
+import ErrorMessage from "./components/ErrorMessage";
 
 // Set OpenAI API key
 const TMBD_API_KEY = import.meta.env.VITE_APP_TMBD_API_KEY;
@@ -23,6 +24,7 @@ const App = () => {
   const [movies, setMovies] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const fetchMoviesFromTMDB = async (movieTitles) => {
     console.log("fetching movies from TMDB...");
@@ -48,6 +50,8 @@ const App = () => {
   };
 
   const fetchMovieTitlesFromOpenAI = async (searchTerm) => {
+    setError(null);
+    let movieTitles = [];
     try {
       const prompt = `Return an array of movie titles that best match this search term, 
                 ordered from most to least relevant. Generate up to 16 titles.
@@ -90,9 +94,17 @@ const App = () => {
 
       console.log(movieTitles);
 
+      // Check if the response is an error message
+      if (movieTitles.length === 1 && movieTitles[0].startsWith("Sorry")) {
+        setError(movieTitles[0]); // Set the error message to the content of movieTitles[0]
+        return [];
+      }
+
       return JSON.parse(movieTitles);
     } catch (error) {
       console.error(error);
+      alert("Something went wrong: " + error.message);
+      setLoading(false);
       return [];
     }
   };
@@ -115,6 +127,7 @@ const App = () => {
         onSearchButtonClick={handleSearchButtonClick}
       />
       {loading && <Loading />}
+      {error && <ErrorMessage message={error} />}
       <MovieGrid movies={movies} />
     </>
   );
