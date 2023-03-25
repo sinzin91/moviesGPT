@@ -19,8 +19,8 @@ const Grid = styled.div`
 const MovieGrid = ({ movies }) => {
   return (
     <Grid>
-      {movies.map((movie) => (
-        <MovieCard key={movie.id} movie={movie} />
+      {movies.map((movie, index) => (
+        <MovieCard key={`${movie.id}-${index}`} movie={movie} />
       ))}
     </Grid>
   );
