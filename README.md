@@ -4,11 +4,15 @@
 ![demo](demo.gif)
 _the hero keeps forgetting who he is_
 
-MoviesGPT is a semantic search engine for movies. This means that the search term doesn't need to match the movie title or description, and can even just be a description of something that happens in the plot. It uses the OpenAI GPT-3.5 API to power natural language search over movies. I generated most of the code using GPT-4, so was able to go from "huh, wouldn't that be cool" to "hell yea it works" in a couple hours! I almost prefer this over Google, where I usually find links to listicles.
+MoviesGPT is a semantic search engine for movies. This means that the search term doesn't need to match the movie title or description, and can even just be a description of something that happens in the plot. It uses the OpenAI GPT-3.5 API to power natural language search over movies. I almost prefer this over Google, where I usually find links to clickbait articles.
 
 
 ### How it works
 We pass the user's query with a prompt describing what we want to `gpt-3.5-turbo` and get a valid array of movies as a response. Then we can just call The Movie Database API to get the movie details.
+
+The more complicated way to build this would be to create word embeddings for the movie titles and descriptions, store those embeddings in some vector datastore, and then use cosine similarity (or some related algorithm) to find the most similar movies. GPT already has these embeddings since most of these movies are mentioned somewhere in the massive pretraining data, so it's a lot easier to just use that.
+
+I generated most of the code using GPT-4, so was able to go from "huh, wouldn't that be cool" to "hell yea it works" in a couple hours! 
 
 The prompt that got me 80% of the way there was:
 ```
@@ -19,8 +23,6 @@ Searches hit The Movie Database api's search endpoint with the search term.
 The results from the API call are used to update the cards below the search bar. 
 The site uses a black and blue, dark mode style theme, with minimal UI components.
 ```
-
-The more complicated way to build this would be to create word embeddings for the movie titles and descriptions, store those embeddings in some vector datastore, and then use cosine similarity (or some related algorithm) to find the most similar movies. GPT already has these embeddings since most of these movies are mentioned somewhere in the massive pretraining data, so it's a lot easier to just use that.
 
 
 ### Limitations
