@@ -55,6 +55,8 @@ const App = () => {
     try {
       const prompt = `Return an array of movie titles that best match this search term, 
                 ordered from most to least relevant. Generate up to 16 titles.
+                If you are unable to answer the question, start your response with Sorry.
+                The response must be a valid JSON array.
   
                 Example:
                 prompt: "movies with brando"
