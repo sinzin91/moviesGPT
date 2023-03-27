@@ -26,42 +26,55 @@ const App = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const fetchMoviesFromTMDB = async (movieTitles) => {
+  const fetchMoviesFromTMDB = async (moviesData) => {
     console.log("fetching movies from TMDB...");
     const fetchedMovies = [];
 
-    for (const title of movieTitles) {
-      console.log(`fetching movie: ${title}`);
-      try {
+    try {
+      const moviesPromises = moviesData.map(async (movie) => {
         const response = await axios.get(
-          `https://api.themoviedb.org/3/search/movie?api_key=${TMBD_API_KEY}&query=${title}`
+          `https://api.themoviedb.org/3/search/movie?api_key=${TMBD_API_KEY}&query=${movie.title}`
         );
-        console.log(response);
+        const data = await response.data;
+        console.log(response)
 
-        if (response.data.results.length > 0) {
-          fetchedMovies.push(response.data.results[0]);
+        if (data.results.length > 0) {
+          return {
+            ...data.results[0],
+            rottenTomatoesScore: movie.rottenTomatoesScore,
+          };
+        } else {
+          return null;
         }
-      } catch (error) {
-        console.error(error);
-      }
-    }
+      });
 
-    setMovies(fetchedMovies.slice(0, 16));
+      const movies = await Promise.all(moviesPromises);
+      fetchedMovies.push(...movies);
+      console.log(fetchedMovies)
+      setMovies(fetchedMovies.slice(0, 16));
+    } catch (error) {
+      console.error(error);
+      return [];
+    }
   };
 
-  const fetchMovieTitlesFromOpenAI = async (searchTerm) => {
+  const fetchMoviesDataFromOpenAI = async (searchTerm) => {
     setError(null);
-    let movieTitles = [];
     try {
-      const prompt = `Return an array of movie titles that best match this search term, 
-                ordered from most to least relevant. Generate up to 16 titles.
+      const prompt = `Return a JSON object movie titles that best match this search term and their Rotten Tomatoes scores, 
+                ordered from most to least relevant. Generate up to 8 titles.
                 If you are unable to answer the question, start your response with Sorry.
-                The response must be a valid JSON array.
+                The response must be a valid JSON.
   
                 Example:
                 prompt: "movies with brando"
                 
-                response: ["The Godfather", "The Godfather: Part II", "Apocalypse Now", "The Wild One"]
+                response: [
+                  { "title": "The Godfather", "rottenTomatoesScore": 98 },
+                  { "title": "The Godfather: Part II", "rottenTomatoesScore": 97 },
+                  { "title": "Apocalypse Now", "rottenTomatoesScore": 96 },
+                  { "title": "The Wild One", "rottenTomatoesScore": 85 },
+                ]
   
                 prompt: ${searchTerm}
                 response:
@@ -89,20 +102,25 @@ const App = () => {
 
       console.log(data);
 
-      const movieTitles = data.choices[0].message.content
-        .trim()
-        .split("\n")
-        .filter((title) => title);
+      const moviesData = data.choices[0].message.content
+        // remove new lines and empty strings
+        .replace(/\n/g, "")
+        .trim();
 
-      console.log(movieTitles);
+      // .trim()
+      // .split("\n")
+      // .filter((title) => title);
+
+      console.log(moviesData);
 
       // Check if the response is an error message
-      if (movieTitles.length === 1 && movieTitles[0].startsWith("Sorry")) {
-        setError(movieTitles[0]); // Set the error message to the content of movieTitles[0]
+      if (moviesData.length === 1 && moviesData[0].startsWith("Sorry")) {
+        setError(moviesData[0]); // Set the error message to the content of moviesData[0]
         return [];
       }
+      console.log(JSON.parse(moviesData));
 
-      return JSON.parse(movieTitles);
+      return JSON.parse(moviesData);
     } catch (error) {
       console.error(error);
       alert("Something went wrong: " + error.message);
@@ -114,8 +132,8 @@ const App = () => {
   const handleSearchButtonClick = async () => {
     if (searchTerm) {
       setLoading(true);
-      const movieTitles = await fetchMovieTitlesFromOpenAI(searchTerm);
-      await fetchMoviesFromTMDB(movieTitles);
+      const moviesData = await fetchMoviesDataFromOpenAI(searchTerm);
+      await fetchMoviesFromTMDB(moviesData);
       setLoading(false);
     }
   };
