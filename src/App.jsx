@@ -14,7 +14,7 @@ const OPENAI_API_KEY = import.meta.env.VITE_APP_OPENAI_API_KEY;
 const DEFAULT_PARAMS = {
   model: "text-davinci-003",
   temperature: 0.1,
-  max_tokens: 256,
+  max_tokens: 1000,
   top_p: 1,
   frequency_penalty: 0,
   presence_penalty: 0,
@@ -36,7 +36,6 @@ const App = () => {
           `https://api.themoviedb.org/3/search/movie?api_key=${TMBD_API_KEY}&query=${movie.title}`
         );
         const data = await response.data;
-        console.log(response)
 
         if (data.results.length > 0) {
           return {
@@ -103,18 +102,10 @@ const App = () => {
 
       const data = await response.json();
 
-      console.log(data);
-
       const moviesData = data.choices[0].text
         // remove new lines and empty strings
         .replace(/\n/g, "")
         .trim();
-
-      // .trim()
-      // .split("\n")
-      // .filter((title) => title);
-
-      console.log(moviesData);
 
       // Check if the response is an error message
       if (moviesData.length === 1 && moviesData[0].startsWith("Sorry")) {
