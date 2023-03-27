@@ -12,7 +12,7 @@ const TMBD_API_KEY = import.meta.env.VITE_APP_TMBD_API_KEY;
 const OPENAI_API_KEY = import.meta.env.VITE_APP_OPENAI_API_KEY;
 
 const DEFAULT_PARAMS = {
-  model: "gpt-3.5-turbo",
+  model: "text-davinci-003",
   temperature: 0.1,
   max_tokens: 256,
   top_p: 1,
@@ -61,8 +61,10 @@ const App = () => {
   const fetchMoviesDataFromOpenAI = async (searchTerm) => {
     setError(null);
     try {
-      const prompt = `Return a JSON object movie titles that best match this search term and their Rotten Tomatoes scores, 
-                ordered from most to least relevant. Generate up to 8 titles.
+      const prompt = `Return a JSON object movie titles that best match this search term and their Rotten Tomatoes tomatometer score, 
+                ordered from most to least relevant. 
+                Get the most up to date and accurate Rotten Tomatoes tomatometer score.
+                Generate up to 12 titles.
                 If you are unable to answer the question, start your response with Sorry.
                 The response must be a valid JSON.
   
@@ -82,9 +84,9 @@ const App = () => {
 
       const params = {
         ...DEFAULT_PARAMS,
-        messages: [
-          { role: "user", content: prompt }],
+        prompt: prompt,
       };
+
       const requestOptions = {
         method: "POST",
         headers: {
@@ -95,7 +97,7 @@ const App = () => {
       };
 
       const response = await fetch(
-        "https://api.openai.com/v1/chat/completions",
+        "https://api.openai.com/v1/completions",
         requestOptions
       );
 
@@ -103,7 +105,7 @@ const App = () => {
 
       console.log(data);
 
-      const moviesData = data.choices[0].message.content
+      const moviesData = data.choices[0].text
         // remove new lines and empty strings
         .replace(/\n/g, "")
         .trim();
