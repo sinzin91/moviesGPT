@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import styled from "styled-components";
 import Stars from "./Stars";
+import RottenTomatoesRating from "./RottenTomatoesRatings";
 
 const Card = styled.div`
   position: relative;
@@ -38,6 +39,13 @@ const OverlayText = styled.p`
   margin: 0.5rem 0;
 `;
 
+const RatingContainer = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+`;
+
 const MovieCard = ({ movie }) => {
   const {
     title,
@@ -46,6 +54,7 @@ const MovieCard = ({ movie }) => {
     release_date,
     overview,
     vote_count,
+    rottenTomatoesScore,
   } = movie;
   const imageUrl = `https://image.tmdb.org/t/p/w300${poster_path}`;
 
@@ -64,11 +73,15 @@ const MovieCard = ({ movie }) => {
     <Card onClick={toggleOverlay}>
       <Image src={imageUrl} alt={title} />
       <Title>{title}</Title>
-      <Stars vote_average={vote_average} alignCenter />
+      <RatingContainer>
+        <Stars vote_average={vote_average} alignCenter />
+        <RottenTomatoesRating rating={rottenTomatoesScore} />
+      </RatingContainer>
       {overlayVisible && (
         <Overlay onClick={hideOverlay}>
           <h2>{title}</h2>
           <Stars vote_average={vote_average} />
+          <RottenTomatoesRating rating={rottenTomatoesScore} />
           <OverlayText>
             <b>Ratings:</b> {vote_count}
           </OverlayText>

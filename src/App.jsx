@@ -73,7 +73,7 @@ const App = () => {
                   { "title": "The Godfather", "rottenTomatoesScore": 98 },
                   { "title": "The Godfather: Part II", "rottenTomatoesScore": 97 },
                   { "title": "Apocalypse Now", "rottenTomatoesScore": 96 },
-                  { "title": "The Wild One", "rottenTomatoesScore": 85 },
+                  { "title": "The Wild One", "rottenTomatoesScore": 85 }
                 ]
   
                 prompt: ${searchTerm}
@@ -82,7 +82,8 @@ const App = () => {
 
       const params = {
         ...DEFAULT_PARAMS,
-        messages: [{ role: "user", content: prompt }],
+        messages: [
+          { role: "user", content: prompt }],
       };
       const requestOptions = {
         method: "POST",
