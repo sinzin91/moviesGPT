@@ -49,7 +49,7 @@ const App = () => {
 
       const movies = await Promise.all(moviesPromises);
       fetchedMovies.push(...movies);
-      console.log(fetchedMovies)
+      console.log(fetchedMovies);
       setMovies(fetchedMovies.slice(0, 16));
     } catch (error) {
       console.error(error);
@@ -64,7 +64,7 @@ const App = () => {
                 ordered from most to least relevant. 
                 Get the most up to date and accurate Rotten Tomatoes tomatometer score.
                 Generate up to 12 titles.
-                If you are unable to answer the question, start your response with Sorry.
+                If you are unable to answer the question, return a string that starts with Sorry.
                 The response must be a valid JSON.
   
                 Example:
@@ -101,6 +101,8 @@ const App = () => {
       );
 
       const data = await response.json();
+      console.log(data)
+
 
       const moviesData = data.choices[0].text
         // remove new lines and empty strings
@@ -108,10 +110,12 @@ const App = () => {
         .trim();
 
       // Check if the response is an error message
-      if (moviesData.length === 1 && moviesData[0].startsWith("Sorry")) {
-        setError(moviesData[0]); // Set the error message to the content of moviesData[0]
+      if (moviesData.startsWith("Sorry")) {
+        console.log("error: " + moviesData);
+        setError(moviesData); // Set the error message to the content of moviesData
         return [];
       }
+
       console.log(JSON.parse(moviesData));
 
       return JSON.parse(moviesData);

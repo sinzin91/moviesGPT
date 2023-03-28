@@ -19,7 +19,7 @@ const ErrorText = styled.p`
 const ErrorMessage = ({ message }) => {
   return (
     <ErrorWrapper>
-      <ErrorText>{message}</ErrorText>
+      <ErrorText>{message} 😞</ErrorText>
     </ErrorWrapper>
   );
 };

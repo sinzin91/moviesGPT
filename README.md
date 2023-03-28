@@ -4,7 +4,7 @@
 ![demo](demo.gif)
 _the hero keeps forgetting who he is_
 
-MoviesGPT is a semantic search engine for movies. This means that the search term doesn't need to match the movie title or description, and can even just be a description of something that happens in the plot. It uses the OpenAI GPT-3.5 API to power natural language search over movies. I almost prefer this over Google, where I usually find links to clickbait articles.
+MoviesGPT is a semantic search engine for movies. This means that the search term doesn't need to match the movie title or description, and can even just be a description of something that happens in the plot. It uses the OpenAI GPT-3.5 API to power natural language search over movies. I almost prefer this over Google, where I usually find links to clickbait articles. 
 
 
 ### How it works
@@ -27,7 +27,7 @@ The site uses a black and blue, dark mode style theme, with minimal UI component
 
 ### Limitations
 1. Movies that come out after late 2021 will not show up because GPT-3.5 was only trained on data before that. Given OpenAI just released Plugins for ChatGPT, I assume ChatGPT will be able to query the latest movies soon. If you ask for movies that came out in 2022, GPT responds with `Sorry, as an AI language model, I don't have information about future movies.` 
-2. I really wanted to include Rotten Tomatoes ratings, but the API is not free.
+2. I really wanted to include Rotten Tomatoes ratings, but the API is not free. It turns out though that GPT knows the ratings of most movies, so I ask for that in the prompt. Spot checking a few movies, the ratings seem to be not accurate, but close enough.
 3. _Some_ results seem questionable, but 🤷 this is mostly a fun/experimental project.
 4. GPT-3.5 is a bit neutered, so asking for movies that it thinks are inappropriate results in the usual "Sorry, but as a language model..." `text-davinci-003` doesn't seem to have the same restrictions.
 
