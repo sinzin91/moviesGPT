@@ -6,6 +6,7 @@ import GlobalStyle from "./styles/GlobalStyle";
 import Header from "./components/Header";
 import Loading from "./components/Loading";
 import ErrorMessage from "./components/ErrorMessage";
+import LocationPermissionCheckbox from "./components/LocationPermissionCheckbox.jsx";
 
 // Set OpenAI API key
 const TMBD_API_KEY = import.meta.env.VITE_APP_TMBD_API_KEY;
@@ -25,6 +26,7 @@ const App = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [countryCode, setCountryCode] = useState('');
 
   const fetchMoviesFromTMDB = async (moviesData) => {
     console.log("fetching movies from TMDB...");
@@ -47,7 +49,7 @@ const App = () => {
           return {
             ...data.results[0],
             rottenTomatoesScore: movie.rottenTomatoesScore,
-            watchProviders: watchProviders.data.results,
+            watchProviders: countryCode ? {[countryCode]:watchProviders.data.results[countryCode]} : watchProviders.data.results,
           };
         } else {
           return null;
@@ -143,10 +145,16 @@ const App = () => {
     }
   };
 
+  const handleCountryCodeChange = (newCountryCode) => {
+    setCountryCode(newCountryCode);
+  };
+
   return (
     <>
       <GlobalStyle />
       <Header />
+      <LocationPermissionCheckbox onCountryCodeChange={handleCountryCodeChange}/>
+      <p>Your country code is: {countryCode}</p>
       <SearchBar
         setSearchTerm={setSearchTerm}
         onSearchButtonClick={handleSearchButtonClick}
