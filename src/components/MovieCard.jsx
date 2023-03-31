@@ -55,6 +55,7 @@ const MovieCard = ({ movie }) => {
     overview,
     vote_count,
     rottenTomatoesScore,
+    watchProviders,
   } = movie;
   const imageUrl = `https://image.tmdb.org/t/p/w300${poster_path}`;
 
@@ -91,8 +92,39 @@ const MovieCard = ({ movie }) => {
           <OverlayText>{overview}</OverlayText>
         </Overlay>
       )}
+      <ProviderList watchProviders={watchProviders}/>
     </Card>
   );
 };
+
+
+const ProviderList = ({watchProviders=null}) => {
+  if (watchProviders === null) return null;
+  const subscriptionServices = new Set();
+
+  // iterate through the countries and get the unique subscription providers
+  for (const country in watchProviders) {
+    // only get subscription services - if there are any
+
+    if ('flatrate' in watchProviders[country]){
+      for (const service in watchProviders[country].flatrate) {
+        subscriptionServices.add(watchProviders[country].flatrate[service].provider_name)
+      }
+    }
+  }
+
+  // for each movie, display the streaming services
+  return (
+      <select>
+        <option value={null}>List of streaming services</option>
+        {Array.from(subscriptionServices).map((option) => (
+            <option key={option} value={option}>
+              {option}
+            </option>
+        ))}
+      </select>
+  );
+}
+
 
 export default MovieCard;

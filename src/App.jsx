@@ -38,9 +38,16 @@ const App = () => {
         const data = await response.data;
 
         if (data.results.length > 0) {
+          // get streaming services associated with the movie
+          const movieId = data.results[0].id
+          const watchProviders = await axios.get(
+              `https://api.themoviedb.org/3/movie/${movieId}/watch/providers?api_key=${TMBD_API_KEY}`
+          )
+
           return {
             ...data.results[0],
             rottenTomatoesScore: movie.rottenTomatoesScore,
+            watchProviders: watchProviders.data.results,
           };
         } else {
           return null;
