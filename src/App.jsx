@@ -149,19 +149,30 @@ const App = () => {
     setCountryCode(newCountryCode);
   };
 
+  const Footer = () => {
+    return (
+        <footer style={{padding: '10px', textAlign: 'center', marginTop: 'auto' }}>
+          <p>Thank you TheMovieDB and JustWatch for the data.</p>
+        </footer>
+    );
+  };
+
   return (
     <>
       <GlobalStyle />
-      <Header />
-      <LocationPermissionCheckbox onCountryCodeChange={handleCountryCodeChange}/>
-      <p>Your country code is: {countryCode}</p>
-      <SearchBar
-        setSearchTerm={setSearchTerm}
-        onSearchButtonClick={handleSearchButtonClick}
-      />
-      {loading && <Loading />}
-      {error && <ErrorMessage message={error} />}
-      <MovieGrid movies={movies} />
+      <main style={{ flex: '1', padding: '20px' }}>
+        <Header />
+        <LocationPermissionCheckbox onCountryCodeChange={handleCountryCodeChange}/>
+        <p>Your country code is: {countryCode}</p>
+        <SearchBar
+          setSearchTerm={setSearchTerm}
+          onSearchButtonClick={handleSearchButtonClick}
+        />
+        {loading && <Loading />}
+        {error && <ErrorMessage message={error} />}
+        <MovieGrid movies={movies} />
+      </main>
+      <Footer />
     </>
   );
 };
