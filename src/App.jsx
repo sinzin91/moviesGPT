@@ -163,7 +163,6 @@ const App = () => {
       <main style={{ flex: '1', padding: '20px' }}>
         <Header />
         <LocationPermissionCheckbox onCountryCodeChange={handleCountryCodeChange}/>
-        <p>Your country code is: {countryCode}</p>
         <SearchBar
           setSearchTerm={setSearchTerm}
           onSearchButtonClick={handleSearchButtonClick}
