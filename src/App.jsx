@@ -162,13 +162,13 @@ const App = () => {
       <GlobalStyle />
       <main style={{ flex: '1', padding: '20px' }}>
         <Header />
-        <LocationPermissionCheckbox onCountryCodeChange={handleCountryCodeChange}/>
         <SearchBar
           setSearchTerm={setSearchTerm}
           onSearchButtonClick={handleSearchButtonClick}
         />
         {loading && <Loading />}
         {error && <ErrorMessage message={error} />}
+        <LocationPermissionCheckbox onCountryCodeChange={handleCountryCodeChange}/>
         <MovieGrid movies={movies} />
       </main>
       <Footer />

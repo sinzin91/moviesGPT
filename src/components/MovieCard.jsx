@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import styled from "styled-components";
 import Stars from "./Stars";
 import RottenTomatoesRating from "./RottenTomatoesRatings";
+import ProviderList from "./ProviderList";
 
 const Card = styled.div`
   position: relative;
@@ -90,41 +91,11 @@ const MovieCard = ({ movie }) => {
             <b>Release Date:</b> {release_date}
           </OverlayText>
           <OverlayText>{overview}</OverlayText>
+          <ProviderList watchProviders={watchProviders}/>
         </Overlay>
       )}
-      <ProviderList watchProviders={watchProviders}/>
     </Card>
   );
 };
-
-
-const ProviderList = ({watchProviders=null}) => {
-  if (watchProviders === null) return null;
-  const subscriptionServices = new Set();
-
-  // iterate through the countries and get the unique subscription providers
-  for (const country in watchProviders) {
-    // only get subscription services - if there are any
-
-    if ('flatrate' in watchProviders[country]){
-      for (const service in watchProviders[country].flatrate) {
-        subscriptionServices.add(watchProviders[country].flatrate[service].provider_name)
-      }
-    }
-  }
-
-  // for each movie, display the streaming services
-  return (
-      <select>
-        <option value={null}>List of streaming services</option>
-        {Array.from(subscriptionServices).map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-        ))}
-      </select>
-  );
-}
-
 
 export default MovieCard;
