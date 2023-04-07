@@ -18,10 +18,6 @@ const GlobalStyle = createGlobalStyle`
     min-height: 100vh;
     padding: 0 1rem;
   }
-
-  .MuiTypography-root {
-    color: #fff;
-  }
 `;
 
 export default GlobalStyle;
