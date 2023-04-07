@@ -1,14 +1,8 @@
 import React, { useState } from "react";
 import Checkbox from "@mui/material/Checkbox";
 import FormControlLabel from "@mui/material/FormControlLabel";
-import { styled } from "@mui/system";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
-
-const CustomFormControlLabel = styled(FormControlLabel)({
-  display: "block",
-  marginBottom: "16px",
-});
 
 const LocationPermissionCheckbox = (props) => {
   const [isChecked, setIsChecked] = useState(false);
