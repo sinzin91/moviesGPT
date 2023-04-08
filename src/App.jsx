@@ -163,7 +163,6 @@ const App = () => {
         style={{
           padding: "10px",
           textAlign: "center",
-          position: "fixed",
           bottom: "50px",
           width: "100%",
           left: "0",
