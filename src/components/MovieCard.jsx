@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import styled from "styled-components";
 import Stars from "./Stars";
 import RottenTomatoesRating from "./RottenTomatoesRatings";
+import ProviderList from "./ProviderList";
 
 const Card = styled.div`
   position: relative;
@@ -55,6 +56,7 @@ const MovieCard = ({ movie }) => {
     overview,
     vote_count,
     rottenTomatoesScore,
+    watchProviders,
   } = movie;
   const imageUrl = `https://image.tmdb.org/t/p/w300${poster_path}`;
 
@@ -89,6 +91,7 @@ const MovieCard = ({ movie }) => {
             <b>Release Date:</b> {release_date}
           </OverlayText>
           <OverlayText>{overview}</OverlayText>
+          <ProviderList watchProviders={watchProviders}/>
         </Overlay>
       )}
     </Card>

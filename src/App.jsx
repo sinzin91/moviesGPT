@@ -6,6 +6,10 @@ import GlobalStyle from "./styles/GlobalStyle";
 import Header from "./components/Header";
 import Loading from "./components/Loading";
 import ErrorMessage from "./components/ErrorMessage";
+import LocationPermissionCheckbox from "./components/LocationPermissionCheckbox.jsx";
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
+import styled from "styled-components";
 
 // Set OpenAI API key
 const TMBD_API_KEY = import.meta.env.VITE_APP_TMBD_API_KEY;
@@ -25,6 +29,7 @@ const App = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [countryCode, setCountryCode] = useState("");
 
   const fetchMoviesFromTMDB = async (moviesData) => {
     console.log("fetching movies from TMDB...");
@@ -38,9 +43,18 @@ const App = () => {
         const data = await response.data;
 
         if (data.results.length > 0) {
+          // get streaming services associated with the movie
+          const movieId = data.results[0].id;
+          const watchProviders = await axios.get(
+            `https://api.themoviedb.org/3/movie/${movieId}/watch/providers?api_key=${TMBD_API_KEY}`
+          );
+
           return {
             ...data.results[0],
             rottenTomatoesScore: movie.rottenTomatoesScore,
+            watchProviders: countryCode
+              ? { [countryCode]: watchProviders.data.results[countryCode] }
+              : watchProviders.data.results,
           };
         } else {
           return null;
@@ -101,8 +115,7 @@ const App = () => {
       );
 
       const data = await response.json();
-      console.log(data)
-
+      console.log(data);
 
       const moviesData = data.choices[0].text
         // remove new lines and empty strings
@@ -136,17 +149,52 @@ const App = () => {
     }
   };
 
+  const handleCountryCodeChange = (newCountryCode) => {
+    setCountryCode(newCountryCode);
+  };
+
+  const FooterText = styled(Typography)`
+    color: #fff;
+  `;
+
+  const Footer = () => {
+    return (
+      <footer
+        style={{
+          padding: "10px",
+          textAlign: "center",
+          position: "fixed",
+          bottom: "50px",
+          width: "100%",
+          left: "0",
+        }}
+      >
+        <FooterText variant="body2">
+          Thank you OpenAI, TheMovieDB and JustWatch.
+        </FooterText>
+      </footer>
+    );
+  };
+  
+  
+
   return (
     <>
       <GlobalStyle />
-      <Header />
-      <SearchBar
-        setSearchTerm={setSearchTerm}
-        onSearchButtonClick={handleSearchButtonClick}
-      />
-      {loading && <Loading />}
-      {error && <ErrorMessage message={error} />}
-      <MovieGrid movies={movies} />
+      <main style={{ flex: "1", padding: "20px" }}>
+        <Header />
+        <SearchBar
+          setSearchTerm={setSearchTerm}
+          onSearchButtonClick={handleSearchButtonClick}
+        />
+        {loading && <Loading />}
+        {error && <ErrorMessage message={error} />}
+        <LocationPermissionCheckbox
+          onCountryCodeChange={handleCountryCodeChange}
+        />
+        <MovieGrid movies={movies} />
+      </main>
+      <Footer />
     </>
   );
 };
