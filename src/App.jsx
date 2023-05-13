@@ -73,7 +73,7 @@ const App = () => {
       const prompt = `Return a JSON object movie titles that best match this search term and their Rotten Tomatoes tomatometer score, 
                 ordered from most to least relevant. 
                 Get the most up to date and accurate Rotten Tomatoes tomatometer score.
-                Generate up to 2 titles.
+                Generate up to 12 titles.
                 If you are unable to answer the question, return a string that starts with Sorry.
                 The response must be a valid JSON.
   
@@ -129,20 +129,19 @@ const App = () => {
           }
 
           const decodedValue = textDecoder.decode(value);
-          console.log("Decoded value:", decodedValue);
 
           const jsonValue = decodedValue.substring(5); // Remove "data: " from the beginning
 
+          // Build up the response from the stream
           try {
             accumulatedData += JSON.parse(jsonValue).choices[0].text;
-            console.log("Accumulated data:", accumulatedData);
-
             const parsedData = JSON.parse(accumulatedData);
-            console.log("Parsed data:", parsedData)
 
+            // Check if the response is a movie object and not a duplicate
             if (parsedData.title && parsedData.title !== lastMovie) {
               accumulatedData = "";
               lastMovie = parsedData.title;
+              // Trigger callback function to handle JSON parsed data
               onMovieDataReceived(parsedData);
             }
           } catch (e) {
@@ -187,7 +186,7 @@ const App = () => {
   };
 
   const FooterText = styled(Typography)`
-    color: #fff;
+    color: #828282;
   `;
 
   const Footer = () => {
