@@ -145,7 +145,13 @@ const App = () => {
               onMovieDataReceived(parsedData);
             }
           } catch (e) {
-            // Ignore errors caused by incomplete JSON data
+            // Check if the accumulatedData contains a closing bracket '}'
+            if (accumulatedData.includes("}")) {
+              // Reset accumulatedData if it cannot be parsed
+              accumulatedData = "";
+            } else {
+              // Ignore errors caused by incomplete JSON data
+            }
           }
         }
 
