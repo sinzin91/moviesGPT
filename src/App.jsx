@@ -22,6 +22,7 @@ const DEFAULT_PARAMS = {
   top_p: 1,
   frequency_penalty: 0,
   presence_penalty: 0,
+  stream: true,
 };
 
 const App = () => {
@@ -31,47 +32,43 @@ const App = () => {
   const [error, setError] = useState(null);
   const [countryCode, setCountryCode] = useState("");
 
-  const fetchMoviesFromTMDB = async (moviesData) => {
-    console.log("fetching movies from TMDB...");
-    const fetchedMovies = [];
+  const fetchMoviesFromTMDB = async (movieData) => {
+    console.log("fetching movie from TMDB...", movieData);
 
     try {
-      const moviesPromises = moviesData.map(async (movie) => {
-        const response = await axios.get(
-          `https://api.themoviedb.org/3/search/movie?api_key=${TMBD_API_KEY}&query=${movie.title}`
+      const response = await axios.get(
+        `https://api.themoviedb.org/3/search/movie?api_key=${TMBD_API_KEY}&query=${movieData.title}`
+      );
+      const data = await response.data;
+
+      if (data.results.length > 0) {
+        // get streaming services associated with the movie
+        const movieId = data.results[0].id;
+        const watchProviders = await axios.get(
+          `https://api.themoviedb.org/3/movie/${movieId}/watch/providers?api_key=${TMBD_API_KEY}`
         );
-        const data = await response.data;
 
-        if (data.results.length > 0) {
-          // get streaming services associated with the movie
-          const movieId = data.results[0].id;
-          const watchProviders = await axios.get(
-            `https://api.themoviedb.org/3/movie/${movieId}/watch/providers?api_key=${TMBD_API_KEY}`
-          );
+        const fetchedMovie = {
+          ...data.results[0],
+          rottenTomatoesScore: movieData.rottenTomatoesScore,
+          watchProviders: countryCode
+            ? { [countryCode]: watchProviders.data.results[countryCode] }
+            : watchProviders.data.results,
+        };
 
-          return {
-            ...data.results[0],
-            rottenTomatoesScore: movie.rottenTomatoesScore,
-            watchProviders: countryCode
-              ? { [countryCode]: watchProviders.data.results[countryCode] }
-              : watchProviders.data.results,
-          };
-        } else {
-          return null;
-        }
-      });
-
-      const movies = await Promise.all(moviesPromises);
-      fetchedMovies.push(...movies);
-      console.log(fetchedMovies);
-      setMovies(fetchedMovies.slice(0, 16));
+        console.log(fetchedMovie);
+        setMovies((prevMovies) => {
+          const updatedMovies = [...prevMovies, fetchedMovie].slice(0, 16);
+          console.log("movies", movies);
+          return updatedMovies;
+        });
+      }
     } catch (error) {
       console.error(error);
-      return [];
     }
   };
 
-  const fetchMoviesDataFromOpenAI = async (searchTerm) => {
+  const fetchMoviesDataFromOpenAI = async (searchTerm, onMovieDataReceived) => {
     setError(null);
     try {
       const prompt = `Return a JSON object movie titles that best match this search term and their Rotten Tomatoes tomatometer score, 
@@ -83,13 +80,13 @@ const App = () => {
   
                 Example:
                 prompt: "movies with brando"
-                
-                response: [
-                  { "title": "The Godfather", "rottenTomatoesScore": 98 },
-                  { "title": "The Godfather: Part II", "rottenTomatoesScore": 97 },
-                  { "title": "Apocalypse Now", "rottenTomatoesScore": 96 },
-                  { "title": "The Wild One", "rottenTomatoesScore": 85 }
-                ]
+  
+                response: 
+                { "title": "The Godfather", "rottenTomatoesScore": 98 }
+                { "title": "On the Waterfront", "rottenTomatoesScore": 98 }
+                { "title": "A Streetcar Named Desire", "rottenTomatoesScore": 98 }
+                { "title": "The Godfather Part II", "rottenTomatoesScore": 98 }
+                { "title": "Apocalypse Now", "rottenTomatoesScore": 98 }
   
                 prompt: ${searchTerm}
                 response:
@@ -114,24 +111,56 @@ const App = () => {
         requestOptions
       );
 
-      const data = await response.json();
-      console.log(data);
-
-      const moviesData = data.choices[0].text
-        // remove new lines and empty strings
-        .replace(/\n/g, "")
-        .trim();
-
-      // Check if the response is an error message
-      if (moviesData.startsWith("Sorry")) {
-        console.log("error: " + moviesData);
-        setError(moviesData); // Set the error message to the content of moviesData
-        return [];
+      if (!response.body) {
+        throw new Error("ReadableStream not yet supported in this browser.");
       }
 
-      console.log(JSON.parse(moviesData));
+      const reader = response.body.getReader();
+      const textDecoder = new TextDecoder();
 
-      return JSON.parse(moviesData);
+      let accumulatedData = "";
+      let lastMovie = null;
+
+      await new Promise(async (resolve, reject) => {
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) {
+            console.log("Stream finished.");
+            break;
+          }
+
+          const decodedValue = textDecoder.decode(value);
+          console.log("Decoded value:", decodedValue);
+
+          const jsonValue = decodedValue.substring(5); // Remove "data: " from the beginning
+
+          try {
+            accumulatedData += JSON.parse(jsonValue).choices[0].text;
+            console.log("Accumulated data:", accumulatedData);
+
+            const parsedData = JSON.parse(accumulatedData);
+            console.log("Parsed data:", parsedData)
+
+            if (parsedData.title && parsedData.title !== lastMovie) {
+              accumulatedData = "";
+              lastMovie = parsedData.title;
+              onMovieDataReceived(parsedData);
+            }
+          } catch (e) {
+            // Ignore errors caused by incomplete JSON data
+          }
+        }
+
+        // Check if the response is an error message
+        const extractedData = accumulatedData.replace(/\n/g, "").trim();
+        if (extractedData.startsWith("Sorry")) {
+          console.log("error: " + extractedData);
+          setError(extractedData); // Set the error message to the content of extractedData
+          resolve([]);
+        } else {
+          resolve();
+        }
+      });
     } catch (error) {
       console.error(error);
       alert("Something went wrong: " + error.message);
@@ -143,8 +172,12 @@ const App = () => {
   const handleSearchButtonClick = async () => {
     if (searchTerm) {
       setLoading(true);
-      const moviesData = await fetchMoviesDataFromOpenAI(searchTerm);
-      await fetchMoviesFromTMDB(moviesData);
+
+      const onMovieDataReceived = async (movieData) => {
+        await fetchMoviesFromTMDB(movieData);
+      };
+
+      await fetchMoviesDataFromOpenAI(searchTerm, onMovieDataReceived);
       setLoading(false);
     }
   };
@@ -166,16 +199,13 @@ const App = () => {
           bottom: "50px",
           width: "100%",
           left: "0",
-        }}
-      >
+        }}>
         <FooterText variant="body2">
           Thank you OpenAI, TheMovieDB and JustWatch.
         </FooterText>
       </footer>
     );
   };
-  
-  
 
   return (
     <>
