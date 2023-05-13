@@ -59,7 +59,6 @@ const App = () => {
         console.log(fetchedMovie);
         setMovies((prevMovies) => {
           const updatedMovies = [...prevMovies, fetchedMovie].slice(0, 16);
-          console.log("movies", movies);
           return updatedMovies;
         });
       }
@@ -74,7 +73,7 @@ const App = () => {
       const prompt = `Return a JSON object movie titles that best match this search term and their Rotten Tomatoes tomatometer score, 
                 ordered from most to least relevant. 
                 Get the most up to date and accurate Rotten Tomatoes tomatometer score.
-                Generate up to 12 titles.
+                Generate up to 2 titles.
                 If you are unable to answer the question, return a string that starts with Sorry.
                 The response must be a valid JSON.
   
@@ -172,6 +171,7 @@ const App = () => {
   const handleSearchButtonClick = async () => {
     if (searchTerm) {
       setLoading(true);
+      setMovies([]);
 
       const onMovieDataReceived = async (movieData) => {
         await fetchMoviesFromTMDB(movieData);
