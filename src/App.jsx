@@ -16,7 +16,7 @@ const TMBD_API_KEY = import.meta.env.VITE_APP_TMBD_API_KEY;
 const OPENAI_API_KEY = import.meta.env.VITE_APP_OPENAI_API_KEY;
 
 const DEFAULT_PARAMS = {
-  model: "text-davinci-003",
+  model: "gpt-3.5-turbo",
   temperature: 0.1,
   max_tokens: 1000,
   top_p: 1,
@@ -24,6 +24,45 @@ const DEFAULT_PARAMS = {
   presence_penalty: 0,
   stream: true,
 };
+
+function convertToValidJson(inputString) {
+  try {
+    // Split the input string by the "data:" prefix
+    const jsonParts = inputString.split("data:").map((part) => part.trim());
+    console.log("jsonParts: ", jsonParts);
+
+    // Process each JSON part separately
+    const contents = jsonParts.map((jsonPart) => {
+      if (jsonPart.startsWith("{") && jsonPart.endsWith("}")) {
+
+        try {
+          const parsedJson = JSON.parse(jsonPart);
+
+          if (
+            parsedJson.choices &&
+            parsedJson.choices.length > 0 &&
+            parsedJson.choices[0].delta &&
+            parsedJson.choices[0].delta.content !== undefined
+          ) {
+            return parsedJson.choices[0].delta.content;
+          }
+        } catch (e) {
+          console.log("failed on: ", jsonPart);
+          console.error("Error parsing JSON part: ", e);
+        }
+      }
+      return "";
+    });
+
+    // Join the extracted contents
+    const joinedContent = contents.join("");
+
+    return joinedContent;
+  } catch (e) {
+    console.error("Error processing input string: ", e);
+    return ""; // Return an empty string in case of processing error
+  }
+}
 
 const App = () => {
   const [movies, setMovies] = useState([]);
@@ -40,6 +79,7 @@ const App = () => {
         `https://api.themoviedb.org/3/search/movie?api_key=${TMBD_API_KEY}&query=${movieData.title}`
       );
       const data = await response.data;
+      // console.log(data);
 
       if (data.results.length > 0) {
         // get streaming services associated with the movie
@@ -75,7 +115,8 @@ const App = () => {
                 Get the most up to date and accurate Rotten Tomatoes tomatometer score.
                 Generate up to 12 titles.
                 If you are unable to answer the question, return a string that starts with Sorry.
-                The response must be a valid JSON.
+                The response must be a valid JSON. 
+                Escape all backslashes. So if you return \, replace it with \\\\
   
                 Example:
                 prompt: "movies with brando"
@@ -93,7 +134,16 @@ const App = () => {
 
       const params = {
         ...DEFAULT_PARAMS,
-        prompt: prompt,
+        messages: [
+          {
+            role: "system",
+            content: prompt,
+          },
+          {
+            role: "user",
+            content: searchTerm,
+          },
+        ],
       };
 
       const requestOptions = {
@@ -106,7 +156,7 @@ const App = () => {
       };
 
       const response = await fetch(
-        "https://api.openai.com/v1/completions",
+        "https://api.openai.com/v1/chat/completions",
         requestOptions
       );
 
@@ -129,34 +179,41 @@ const App = () => {
           }
 
           const decodedValue = textDecoder.decode(value);
+          console.log(decodedValue);
 
-          const jsonValue = decodedValue.substring(5); // Remove "data: " from the beginning
+          const content = convertToValidJson(decodedValue);
+          console.log(content);
 
           // Build up the response from the stream
-          try {
-            accumulatedData += JSON.parse(jsonValue).choices[0].text;
-            const parsedData = JSON.parse(accumulatedData);
+          if (content) {
+            accumulatedData += content;
+            console.log("accumulatedData: ", accumulatedData);
+            try {
+              const parsedData = JSON.parse(accumulatedData);
 
-            // Check if the response is a movie object and not a duplicate
-            if (parsedData.title && parsedData.title !== lastMovie) {
-              accumulatedData = "";
-              lastMovie = parsedData.title;
-              // Trigger callback function to handle JSON parsed data
-              onMovieDataReceived(parsedData);
-            }
-          } catch (e) {
-            // Check if the accumulatedData contains a closing bracket '}'
-            if (accumulatedData.includes("}")) {
-              // Reset accumulatedData if it cannot be parsed
-              accumulatedData = "";
-            } else {
-              // Ignore errors caused by incomplete JSON data
+              // Check if the response is a movie object and not a duplicate
+              if (parsedData.title && parsedData.title !== lastMovie) {
+                accumulatedData = "";
+                lastMovie = parsedData.title;
+                // Trigger callback function to handle JSON parsed data
+                onMovieDataReceived(parsedData);
+              }
+            } catch (e) {
+              // Check if the accumulatedData contains a closing bracket '}'
+              if (accumulatedData.includes("}")) {
+                // Reset accumulatedData if it cannot be parsed
+                accumulatedData = "";
+              } else {
+                // Ignore errors caused by incomplete JSON data
+              }
             }
           }
         }
 
         // Check if the response is an error message
         const extractedData = accumulatedData.replace(/\n/g, "").trim();
+        console.log("accumulatedData: " + accumulatedData);
+        console.log("extractedData: " + extractedData);
         if (extractedData.startsWith("Sorry")) {
           console.log("error: " + extractedData);
           setError(extractedData); // Set the error message to the content of extractedData
