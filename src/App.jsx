@@ -16,7 +16,7 @@ const TMBD_API_KEY = import.meta.env.VITE_APP_TMBD_API_KEY;
 const OPENAI_API_KEY = import.meta.env.VITE_APP_OPENAI_API_KEY;
 
 const DEFAULT_PARAMS = {
-  model: "text-davinci-003",
+  model: "gpt-3.5-turbo",
   temperature: 0.1,
   max_tokens: 1000,
   top_p: 1,
@@ -24,6 +24,46 @@ const DEFAULT_PARAMS = {
   presence_penalty: 0,
   stream: true,
 };
+
+function extractContentFromStream(inputString) {
+  try {
+    // Split the input string by the "data:" prefix
+    const jsonParts = inputString.split("data:").map((part) => part.trim());
+
+    // Process each JSON part separately
+    const contents = jsonParts.map((jsonPart) => {
+      // Replace "START" with "{" and "END" with "}"
+      const replacedJsonPart = jsonPart.replace(/START/g, "{").replace(/END/g, "}");
+
+      if (replacedJsonPart.startsWith("{") && replacedJsonPart.endsWith("}")) {
+
+        try {
+          const parsedJson = JSON.parse(replacedJsonPart);
+
+          if (
+            parsedJson.choices &&
+            parsedJson.choices.length > 0 &&
+            parsedJson.choices[0].delta &&
+            parsedJson.choices[0].delta.content !== undefined
+          ) {
+            return parsedJson.choices[0].delta.content;
+          }
+        } catch (e) {
+          // ignore parsing errors
+        }
+      }
+      return "";
+    });
+
+    // Join the extracted contents
+    const joinedContent = contents.join("");
+
+    return joinedContent;
+  } catch (e) {
+    console.error("Error processing input string: ", e);
+    return ""; // Return an empty string in case of processing error
+  }
+}
 
 const App = () => {
   const [movies, setMovies] = useState([]);
@@ -40,6 +80,7 @@ const App = () => {
         `https://api.themoviedb.org/3/search/movie?api_key=${TMBD_API_KEY}&query=${movieData.title}`
       );
       const data = await response.data;
+      // console.log(data);
 
       if (data.results.length > 0) {
         // get streaming services associated with the movie
@@ -70,22 +111,20 @@ const App = () => {
   const fetchMoviesDataFromOpenAI = async (searchTerm, onMovieDataReceived) => {
     setError(null);
     try {
-      const prompt = `Return a JSON object movie titles that best match this search term and their Rotten Tomatoes tomatometer score, 
+      const prompt = `Return movie titles that best match this search term and their Rotten Tomatoes tomatometer score, 
                 ordered from most to least relevant. 
                 Get the most up to date and accurate Rotten Tomatoes tomatometer score.
                 Generate up to 12 titles.
                 If you are unable to answer the question, return a string that starts with Sorry.
-                The response must be a valid JSON.
   
                 Example:
                 prompt: "movies with brando"
   
                 response: 
-                { "title": "The Godfather", "rottenTomatoesScore": 98 }
-                { "title": "On the Waterfront", "rottenTomatoesScore": 98 }
-                { "title": "A Streetcar Named Desire", "rottenTomatoesScore": 98 }
-                { "title": "The Godfather Part II", "rottenTomatoesScore": 98 }
-                { "title": "Apocalypse Now", "rottenTomatoesScore": 98 }
+                START "title": "The Godfather", "rottenTomatoesScore": 98 END
+                START "title": "On the Waterfront", "rottenTomatoesScore": 98 END
+                START "title": "A Streetcar Named Desire", "rottenTomatoesScore": 98 END
+                START "title": "The Godfather Part II", "rottenTomatoesScore": 98 END
   
                 prompt: ${searchTerm}
                 response:
@@ -93,7 +132,16 @@ const App = () => {
 
       const params = {
         ...DEFAULT_PARAMS,
-        prompt: prompt,
+        messages: [
+          {
+            role: "system",
+            content: prompt,
+          },
+          {
+            role: "user",
+            content: searchTerm,
+          },
+        ],
       };
 
       const requestOptions = {
@@ -106,7 +154,7 @@ const App = () => {
       };
 
       const response = await fetch(
-        "https://api.openai.com/v1/completions",
+        "https://api.openai.com/v1/chat/completions",
         requestOptions
       );
 
@@ -130,27 +178,30 @@ const App = () => {
 
           const decodedValue = textDecoder.decode(value);
 
-          const jsonValue = decodedValue.substring(5); // Remove "data: " from the beginning
+          const content = extractContentFromStream(decodedValue);
 
           // Build up the response from the stream
-          try {
-            accumulatedData += JSON.parse(jsonValue).choices[0].text;
-            const parsedData = JSON.parse(accumulatedData);
+          if (content) {
+            accumulatedData += content;
+            try {
+              const parsedData = JSON.parse(accumulatedData);
 
-            // Check if the response is a movie object and not a duplicate
-            if (parsedData.title && parsedData.title !== lastMovie) {
-              accumulatedData = "";
-              lastMovie = parsedData.title;
-              // Trigger callback function to handle JSON parsed data
-              onMovieDataReceived(parsedData);
-            }
-          } catch (e) {
-            // Check if the accumulatedData contains a closing bracket '}'
-            if (accumulatedData.includes("}")) {
-              // Reset accumulatedData if it cannot be parsed
-              accumulatedData = "";
-            } else {
-              // Ignore errors caused by incomplete JSON data
+              // Check if the response is a movie object and not a duplicate
+              if (parsedData.title && parsedData.title !== lastMovie) {
+                accumulatedData = "";
+                lastMovie = parsedData.title;
+                // Trigger callback function to handle JSON parsed data
+                onMovieDataReceived(parsedData);
+              }
+            } catch (e) {
+              // Check if the accumulatedData contains a closing bracket '}'
+              if (accumulatedData.includes("}")) {
+                // Reset accumulatedData if it cannot be parsed
+                accumulatedData = "";
+              } else {
+                // Ignore errors caused by incomplete JSON data
+                console.log("Error parsing JSON for accumulatedData: ", e);
+              }
             }
           }
         }
