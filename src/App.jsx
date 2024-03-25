@@ -29,14 +29,16 @@ function convertToValidJson(inputString) {
   try {
     // Split the input string by the "data:" prefix
     const jsonParts = inputString.split("data:").map((part) => part.trim());
-    console.log("jsonParts: ", jsonParts);
 
     // Process each JSON part separately
     const contents = jsonParts.map((jsonPart) => {
-      if (jsonPart.startsWith("{") && jsonPart.endsWith("}")) {
+      // Replace "START" with "{" and "END" with "}"
+      const replacedJsonPart = jsonPart.replace(/START/g, "{").replace(/END/g, "}");
+
+      if (replacedJsonPart.startsWith("{") && replacedJsonPart.endsWith("}")) {
 
         try {
-          const parsedJson = JSON.parse(jsonPart);
+          const parsedJson = JSON.parse(replacedJsonPart);
 
           if (
             parsedJson.choices &&
@@ -47,8 +49,7 @@ function convertToValidJson(inputString) {
             return parsedJson.choices[0].delta.content;
           }
         } catch (e) {
-          console.log("failed on: ", jsonPart);
-          console.error("Error parsing JSON part: ", e);
+          // ignore parsing errors
         }
       }
       return "";
@@ -110,23 +111,20 @@ const App = () => {
   const fetchMoviesDataFromOpenAI = async (searchTerm, onMovieDataReceived) => {
     setError(null);
     try {
-      const prompt = `Return a JSON object movie titles that best match this search term and their Rotten Tomatoes tomatometer score, 
+      const prompt = `Return movie titles that best match this search term and their Rotten Tomatoes tomatometer score, 
                 ordered from most to least relevant. 
                 Get the most up to date and accurate Rotten Tomatoes tomatometer score.
                 Generate up to 12 titles.
                 If you are unable to answer the question, return a string that starts with Sorry.
-                The response must be a valid JSON. 
-                Escape all backslashes. So if you return \, replace it with \\\\
   
                 Example:
                 prompt: "movies with brando"
   
                 response: 
-                { "title": "The Godfather", "rottenTomatoesScore": 98 }
-                { "title": "On the Waterfront", "rottenTomatoesScore": 98 }
-                { "title": "A Streetcar Named Desire", "rottenTomatoesScore": 98 }
-                { "title": "The Godfather Part II", "rottenTomatoesScore": 98 }
-                { "title": "Apocalypse Now", "rottenTomatoesScore": 98 }
+                START "title": "The Godfather", "rottenTomatoesScore": 98 END
+                START "title": "On the Waterfront", "rottenTomatoesScore": 98 END
+                START "title": "A Streetcar Named Desire", "rottenTomatoesScore": 98 END
+                START "title": "The Godfather Part II", "rottenTomatoesScore": 98 END
   
                 prompt: ${searchTerm}
                 response:
@@ -179,15 +177,12 @@ const App = () => {
           }
 
           const decodedValue = textDecoder.decode(value);
-          console.log(decodedValue);
 
           const content = convertToValidJson(decodedValue);
-          console.log(content);
 
           // Build up the response from the stream
           if (content) {
             accumulatedData += content;
-            console.log("accumulatedData: ", accumulatedData);
             try {
               const parsedData = JSON.parse(accumulatedData);
 
@@ -205,6 +200,7 @@ const App = () => {
                 accumulatedData = "";
               } else {
                 // Ignore errors caused by incomplete JSON data
+                console.log("Error parsing JSON for accumulatedData: ", e);
               }
             }
           }
@@ -212,8 +208,6 @@ const App = () => {
 
         // Check if the response is an error message
         const extractedData = accumulatedData.replace(/\n/g, "").trim();
-        console.log("accumulatedData: " + accumulatedData);
-        console.log("extractedData: " + extractedData);
         if (extractedData.startsWith("Sorry")) {
           console.log("error: " + extractedData);
           setError(extractedData); // Set the error message to the content of extractedData
