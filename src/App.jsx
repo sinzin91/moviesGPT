@@ -25,7 +25,7 @@ const DEFAULT_PARAMS = {
   stream: true,
 };
 
-function convertToValidJson(inputString) {
+function extractContentFromStream(inputString) {
   try {
     // Split the input string by the "data:" prefix
     const jsonParts = inputString.split("data:").map((part) => part.trim());
@@ -178,7 +178,7 @@ const App = () => {
 
           const decodedValue = textDecoder.decode(value);
 
-          const content = convertToValidJson(decodedValue);
+          const content = extractContentFromStream(decodedValue);
 
           // Build up the response from the stream
           if (content) {
