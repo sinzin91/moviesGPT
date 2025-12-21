@@ -13,8 +13,6 @@ import styled from "styled-components";
 
 // Set OpenAI API key
 const TMBD_API_KEY = import.meta.env.VITE_APP_TMBD_API_KEY;
-const OPENAI_API_KEY = import.meta.env.VITE_APP_OPENAI_API_KEY;
-
 const DEFAULT_PARAMS = {
   model: "gpt-3.5-turbo",
   temperature: 0.1,
@@ -32,13 +30,13 @@ function extractContentFromStream(inputString) {
 
     // Process each JSON part separately
     const contents = jsonParts.map((jsonPart) => {
-      // Replace "START" with "{" and "END" with "}"
-      const replacedJsonPart = jsonPart.replace(/START/g, "{").replace(/END/g, "}");
+      if (jsonPart === "[DONE]") {
+        return "";
+      }
 
-      if (replacedJsonPart.startsWith("{") && replacedJsonPart.endsWith("}")) {
-
+      if (jsonPart.startsWith("{") && jsonPart.endsWith("}")) {
         try {
-          const parsedJson = JSON.parse(replacedJsonPart);
+          const parsedJson = JSON.parse(jsonPart);
 
           if (
             parsedJson.choices &&
@@ -102,9 +100,11 @@ const App = () => {
           const updatedMovies = [...prevMovies, fetchedMovie].slice(0, 16);
           return updatedMovies;
         });
+      } else {
+        console.log("TMDB: no results for title", movieData.title);
       }
     } catch (error) {
-      console.error(error);
+      console.error("TMDB fetch failed:", error);
     }
   };
 
@@ -148,15 +148,11 @@ const App = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: "Bearer " + String(OPENAI_API_KEY),
         },
         body: JSON.stringify(params),
       };
 
-      const response = await fetch(
-        "https://api.openai.com/v1/chat/completions",
-        requestOptions
-      );
+      const response = await fetch("/api/openai", requestOptions);
 
       if (!response.body) {
         throw new Error("ReadableStream not yet supported in this browser.");
@@ -165,7 +161,7 @@ const App = () => {
       const reader = response.body.getReader();
       const textDecoder = new TextDecoder();
 
-      let accumulatedData = "";
+      let contentBuffer = "";
       let lastMovie = null;
 
       await new Promise(async (resolve, reject) => {
@@ -180,34 +176,40 @@ const App = () => {
 
           const content = extractContentFromStream(decodedValue);
 
-          // Build up the response from the stream
           if (content) {
-            accumulatedData += content;
-            try {
-              const parsedData = JSON.parse(accumulatedData);
+            contentBuffer += content;
 
-              // Check if the response is a movie object and not a duplicate
-              if (parsedData.title && parsedData.title !== lastMovie) {
-                accumulatedData = "";
-                lastMovie = parsedData.title;
-                // Trigger callback function to handle JSON parsed data
-                onMovieDataReceived(parsedData);
-              }
-            } catch (e) {
-              // Check if the accumulatedData contains a closing bracket '}'
-              if (accumulatedData.includes("}")) {
-                // Reset accumulatedData if it cannot be parsed
-                accumulatedData = "";
-              } else {
-                // Ignore errors caused by incomplete JSON data
-                console.log("Error parsing JSON for accumulatedData: ", e);
+            while (true) {
+              const startIndex = contentBuffer.indexOf("START");
+              if (startIndex === -1) break;
+
+              const endIndex = contentBuffer.indexOf("END", startIndex);
+              if (endIndex === -1) break;
+
+              const raw = contentBuffer
+                .slice(startIndex + "START".length, endIndex)
+                .trim();
+
+              contentBuffer = contentBuffer.slice(endIndex + "END".length);
+
+              if (!raw) continue;
+
+              try {
+                const parsedData = JSON.parse(`{${raw}}`);
+                if (parsedData.title && parsedData.title !== lastMovie) {
+                  lastMovie = parsedData.title;
+                  console.log("Parsed movie from stream:", parsedData);
+                  onMovieDataReceived(parsedData);
+                }
+              } catch (e) {
+                console.log("Error parsing movie data: ", e);
               }
             }
           }
         }
 
         // Check if the response is an error message
-        const extractedData = accumulatedData.replace(/\n/g, "").trim();
+        const extractedData = contentBuffer.replace(/\n/g, "").trim();
         if (extractedData.startsWith("Sorry")) {
           console.log("error: " + extractedData);
           setError(extractedData); // Set the error message to the content of extractedData
