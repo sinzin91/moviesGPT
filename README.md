@@ -37,10 +37,27 @@ The site uses a black and blue, dark mode style theme, with minimal UI component
 2. Install the dependencies: `yarn install`
 3. Create a `.env` file in the root directory and add the following:
 ```
-VITE_APP_OPENAI_API_KEY="YOUR_OPENAI_API_KEY"
 VITE_APP_TMBD_API_KEY="YOUR_TMDB_API_KEY"
 ```
 4. Run the app: `yarn dev`
+
+### OpenAI API key and serverless proxy
+The OpenAI API key must not be exposed in the browser. Vite environment variables prefixed with
+`VITE_` are bundled into client code, which makes them publicly accessible. To keep the key safe,
+the app proxies OpenAI requests through a serverless route at `api/openai.js`.
+
+### Vercel deployment (recommended)
+1. Deploy with Vercel (auto-detects Vite).
+2. Add `OPENAI_API_KEY` to the Vercel project environment (do not use `VITE_`).
+3. The client will call `/api/openai` automatically on the deployed domain.
+
+### Local dev with the serverless route
+1. Create `.env.local` and add:
+```
+OPENAI_API_KEY="YOUR_OPENAI_API_KEY"
+VITE_APP_TMBD_API_KEY="YOUR_TMDB_API_KEY"
+```
+2. Run: `npx vercel dev`
 
 ### Contributing
 If you have a neat idea and want to contribute, feel free to open a PR or issue. 
