@@ -63,4 +63,4 @@ VITE_APP_TMBD_API_KEY="YOUR_TMDB_API_KEY"
 If you have a neat idea and want to contribute, feel free to open a PR or issue.
 
 ### License
-MIT 
+MIT
